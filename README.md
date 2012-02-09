@@ -8,7 +8,6 @@ To encrypt file:
 
 To decrypt file:
 
-`FileEncrypt.exe -a c -i FileToEncrypt -o FileEncrypted -p Password`
-
+`FileEncrypt.exe -a d -i FileEncrypted -o FileDecrypted -p Password`
 
 ![Encrypting and decrypting file](http://if.pw.edu.pl/~ludwik/FileEncrypt.png)

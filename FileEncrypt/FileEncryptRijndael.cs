@@ -7,9 +7,22 @@ using System.IO;
 
 namespace FileEncrypt
 {
-    public static class FileEncrypt
+    public class FileEncryptRijndael
     {
-        public static void Encrypt(string inputFileName, string outputFileName, string password, byte [] saltValueBytes)
+        private string inputFileName;
+        private string outputFileName;
+        private string password;
+        private byte[] saltValueBytes;
+
+        public FileEncryptRijndael(string inputFileName, string outputFileName, string password, byte[] saltValueBytes)
+        {
+            this.inputFileName = inputFileName;
+            this.outputFileName = outputFileName;
+            this.password = password;
+            this.saltValueBytes = saltValueBytes;
+        }
+
+        public void Encrypt()
         {
             Rfc2898DeriveBytes passwordKey = new Rfc2898DeriveBytes(password, saltValueBytes);
 
@@ -47,7 +60,7 @@ namespace FileEncrypt
             }
         }
 
-        public static void Decrypt(string inputFileName, string outputFileName, string password, byte[] saltValueBytes)
+        public void Decrypt()
         {
             Rfc2898DeriveBytes passwordKey = new Rfc2898DeriveBytes(password, saltValueBytes);
 

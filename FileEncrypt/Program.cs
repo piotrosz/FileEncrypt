@@ -113,7 +113,7 @@ namespace FileEncrypt
                 if (action == CryptAction.Encrypt)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Crypting");
+                    Console.WriteLine("Encrypting");
                     Console.ResetColor();
                     Console.ForegroundColor = ConsoleColor.DarkRed;
                     Console.WriteLine("{0} -> {1}", inputFileName, outputFileName);
@@ -123,7 +123,8 @@ namespace FileEncrypt
 					if(!saltStore.SaltCreated())
 						saltStore.Save(SaltCreator.Create());
 					
-                    FileEncrypt.Encrypt(inputFileName, outputFileName, password, saltStore.Get());
+                    var encrypter = new FileEncryptRijndael(inputFileName, outputFileName, password, saltStore.Get());
+                    encrypter.Encrypt();
                 }
                 else if (action == CryptAction.Decrypt)
                 {
@@ -135,8 +136,9 @@ namespace FileEncrypt
                     Console.ResetColor();
 					
 					SaltStore saltStore = new SaltStore(saltFileName);
-					
-                    FileEncrypt.Decrypt(inputFileName, outputFileName, password, saltStore.Get());
+
+                    var decrypter = new FileEncryptRijndael(inputFileName, outputFileName, password, saltStore.Get());
+                    decrypter.Decrypt();
                 }
             }
             catch (CryptographicException ex) { ShowException(ex); }

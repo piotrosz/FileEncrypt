@@ -10,4 +10,4 @@ To decrypt file:
 
 `FileEncrypt.exe -a d -i FileEncrypted -o FileDecrypted -p Password`
 
-![Encrypting and decrypting file](http://if.pw.edu.pl/~ludwik/images/FileEncrypt2.png)
+![Encrypting and decrypting file](http://if.pw.edu.pl/~ludwik/images/FileEncrypt.png)

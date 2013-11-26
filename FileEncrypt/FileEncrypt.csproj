@@ -42,13 +42,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConsoleWriter.cs" />
+    <Compile Include="CryptActionEnum.cs" />
     <Compile Include="FileEncryptRijndael.cs" />
-    <Compile Include="FileEncryptRSA.cs" />
+    <Compile Include="FileEncryptRsa.cs" />
+    <Compile Include="IEncrypter.cs" />
     <Compile Include="Options.cs" />
+    <Compile Include="OptionSetHelper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SaltCreator.cs" />
     <Compile Include="SaltStore.cs" />
+    <Compile Include="Settings.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

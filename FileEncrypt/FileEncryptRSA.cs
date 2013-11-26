@@ -1,90 +1,67 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using System.IO;
 using System.Security.Cryptography;
 
 namespace FileEncrypt
 {
-    public class FileEncryptRSA
+    public class FileEncryptRsa : IEncrypter
     {
-        private string inputFileName;
-        private string outputFileName;
-        private string rsaParamsFileName;
+        private readonly string _inputFileName;
+        private readonly string _outputFileName;
+        private readonly string _rsaParamsFileName;
 
-        public FileEncryptRSA(string inputFileName, string outputFileName, string rsaParamsFileName)
+        public FileEncryptRsa(string inputFileName, string outputFileName, string rsaParamsFileName)
         {
-            this.inputFileName = inputFileName;
-            this.outputFileName = outputFileName;
-            this.rsaParamsFileName = rsaParamsFileName;
+            _inputFileName = inputFileName;
+            _outputFileName = outputFileName;
+            _rsaParamsFileName = rsaParamsFileName;
         }
 
         public void Encrypt()
         {
-            byte[] dataToEncrypt = File.ReadAllBytes(inputFileName);
+            byte[] dataToEncrypt = File.ReadAllBytes(_inputFileName);
             byte[] encryptedData;
 
-            using (var RSA = new RSACryptoServiceProvider())
+            using (var rsaProvider = new RSACryptoServiceProvider())
             {
-                string rsaParams = RSA.ToXmlString(true);
-                File.WriteAllText(rsaParamsFileName, rsaParams);
-                encryptedData = RSAEncrypt(dataToEncrypt, rsaParams);
+                string rsaParams = rsaProvider.ToXmlString(true);
+                File.WriteAllText(_rsaParamsFileName, rsaParams);
+                encryptedData = RsaEncrypt(dataToEncrypt, rsaParams);
             }
 
-            File.WriteAllBytes(outputFileName, encryptedData);
+            File.WriteAllBytes(_outputFileName, encryptedData);
         }
 
         public void Decrypt()
         {
-            UTF8Encoding byteConverter = new UTF8Encoding();
-            byte[] encryptedData = File.ReadAllBytes(inputFileName);
-            string rsaParams = File.ReadAllText(rsaParamsFileName);
+            var byteConverter = new UTF8Encoding();
+            byte[] encryptedData = File.ReadAllBytes(_inputFileName);
+            string rsaParams = File.ReadAllText(_rsaParamsFileName);
+            byte[] decryptedData = RsaDecrypt(encryptedData, rsaParams);
+
+            File.WriteAllText(_outputFileName, byteConverter.GetString(decryptedData));
+        }
+
+        private byte[] RsaEncrypt(byte[] dataToEncrypt, string rsaParams)
+        {
+            byte[] encryptedData;
+            using (var rsaProvider = new RSACryptoServiceProvider())
+            {
+                rsaProvider.FromXmlString(rsaParams);
+                encryptedData = rsaProvider.Encrypt(dataToEncrypt, false);
+            }
+            return encryptedData;
+        }
+
+        private byte[] RsaDecrypt(byte[] dataToDecrypt, string rsaParams)
+        {
             byte[] decryptedData;
-            using (var RSA = new RSACryptoServiceProvider())
+            using (var rsaProvider = new RSACryptoServiceProvider())
             {
-                decryptedData = RSADecrypt(encryptedData, rsaParams);
+                rsaProvider.FromXmlString(rsaParams);
+                decryptedData = rsaProvider.Decrypt(dataToDecrypt, false);
             }
-
-            File.WriteAllText(outputFileName, byteConverter.GetString(decryptedData));
-        }
-
-        private byte[] RSAEncrypt(byte[] DataToEncrypt, string rsaParams)
-        {
-            try
-            {
-                byte[] encryptedData;
-                using (var RSA = new RSACryptoServiceProvider())
-                {
-                    RSA.FromXmlString(rsaParams);
-                    encryptedData = RSA.Encrypt(DataToEncrypt, false);
-                }
-                return encryptedData;
-            }
-            catch (CryptographicException e)
-            {
-                Console.WriteLine(e.Message);
-                return null;
-            }
-        }
-
-        private byte[] RSADecrypt(byte[] DataToDecrypt, string rsaParams)
-        {
-            try
-            {
-                byte[] decryptedData;
-                using (var RSA = new RSACryptoServiceProvider())
-                {
-                    RSA.FromXmlString(rsaParams);
-                    decryptedData = RSA.Decrypt(DataToDecrypt, false);
-                }
-                return decryptedData;
-            }
-            catch (CryptographicException e)
-            {
-                Console.WriteLine(e.ToString());
-                return null;
-            }
+            return decryptedData;
         }
     }
 }

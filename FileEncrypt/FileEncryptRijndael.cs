@@ -1,99 +1,107 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.IO;
 
 namespace FileEncrypt
 {
-    public class FileEncryptRijndael
+    public class FileEncryptRijndael : IEncrypter
     {
-        private string inputFileName;
-        private string outputFileName;
-        private string password;
-        private byte[] saltValueBytes;
+        private readonly string _inputFileName;
+        private readonly string _outputFileName;
+        private readonly string _password;
+        private readonly byte[] _saltValueBytes;
 
         public FileEncryptRijndael(string inputFileName, string outputFileName, string password, byte[] saltValueBytes)
         {
-            this.inputFileName = inputFileName;
-            this.outputFileName = outputFileName;
-            this.password = password;
-            this.saltValueBytes = saltValueBytes;
+            _inputFileName = inputFileName;
+            _outputFileName = outputFileName;
+            _password = password;
+            _saltValueBytes = saltValueBytes;
         }
 
         public void Encrypt()
         {
-            Rfc2898DeriveBytes passwordKey = new Rfc2898DeriveBytes(password, saltValueBytes);
+            var passwordKey = new Rfc2898DeriveBytes(_password, _saltValueBytes);
 
-            RijndaelManaged alg = new RijndaelManaged();
-            alg.Key = passwordKey.GetBytes(alg.KeySize / 8);
-            alg.IV = passwordKey.GetBytes(alg.BlockSize / 8);
+            var algorithm = new RijndaelManaged();
+            algorithm.Key = passwordKey.GetBytes(algorithm.KeySize / 8);
+            algorithm.IV = passwordKey.GetBytes(algorithm.BlockSize / 8);
 
-            FileStream fs = null, outFile = null;
+            FileStream fileStream = null, outFile = null;
 
-            byte[] fileData = null;
-            ICryptoTransform encryptor = null;
-
-            CryptoStream encryptStr = null;
+            CryptoStream cryptoStream = null;
             try
             {
-                fs = new FileStream(inputFileName, FileMode.Open, FileAccess.Read);
+                fileStream = new FileStream(_inputFileName, FileMode.Open, FileAccess.Read);
 
-                fileData = new byte[fs.Length];
-                fs.Read(fileData, 0, (int)fs.Length);
-                encryptor = alg.CreateEncryptor();
+                var fileData = new byte[fileStream.Length];
+                fileStream.Read(fileData, 0, (int)fileStream.Length);
+                ICryptoTransform encryptor = algorithm.CreateEncryptor();
 
-                outFile = new FileStream(outputFileName, FileMode.OpenOrCreate, FileAccess.Write);
+                outFile = new FileStream(_outputFileName, FileMode.OpenOrCreate, FileAccess.Write);
 
-                encryptStr = new CryptoStream(outFile, encryptor, CryptoStreamMode.Write);
-                encryptStr.Write(fileData, 0, fileData.Length);
+                cryptoStream = new CryptoStream(outFile, encryptor, CryptoStreamMode.Write);
+                cryptoStream.Write(fileData, 0, fileData.Length);
             }
             finally
             {
-                if (encryptStr != null)
-                    encryptStr.Close();
-                if (fs != null)
-                    fs.Close();
-                if (outFile != null)
-                    outFile.Close();
+                if (cryptoStream != null)
+                {
+                    cryptoStream.Close();
+                }
+                    
+                if (fileStream != null)
+                {
+                    fileStream.Close();
+                }
+
+                if (outFile != null) 
+                { 
+                    outFile.Close(); 
+                }
             }
         }
 
         public void Decrypt()
         {
-            Rfc2898DeriveBytes passwordKey = new Rfc2898DeriveBytes(password, saltValueBytes);
+            var passwordKey = new Rfc2898DeriveBytes(_password, _saltValueBytes);
 
-            RijndaelManaged alg = new RijndaelManaged();
-            alg.Key = passwordKey.GetBytes(alg.KeySize / 8);
+            var algorithm = new RijndaelManaged();
+            algorithm.Key = passwordKey.GetBytes(algorithm.KeySize / 8);
 
-            alg.IV = passwordKey.GetBytes(alg.BlockSize / 8);
-            ICryptoTransform decryptor = alg.CreateDecryptor();
-            FileStream fs = null, outFile = null;
+            algorithm.IV = passwordKey.GetBytes(algorithm.BlockSize / 8);
+            ICryptoTransform decryptor = algorithm.CreateDecryptor();
+            FileStream fileStream = null, outFile = null;
 
-            CryptoStream decrStr = null;
-            byte[] fileData = null;
+            CryptoStream cryptoStream = null;
 
             try
             {
-                fs = new FileStream(inputFileName, FileMode.Open, FileAccess.Read);
+                fileStream = new FileStream(_inputFileName, FileMode.Open, FileAccess.Read);
 
-                decrStr = new CryptoStream(fs, decryptor, CryptoStreamMode.Read);
-                fileData = new byte[fs.Length];
+                cryptoStream = new CryptoStream(fileStream, decryptor, CryptoStreamMode.Read);
+                var fileData = new byte[fileStream.Length];
 
-                decrStr.Read(fileData, 0, (int)fs.Length);
-                outFile = new FileStream(outputFileName, FileMode.OpenOrCreate, FileAccess.Write);
+                cryptoStream.Read(fileData, 0, (int)fileStream.Length);
+                outFile = new FileStream(_outputFileName, FileMode.OpenOrCreate, FileAccess.Write);
 
                 outFile.Write(fileData, 0, fileData.Length);
             }
             finally
             {
-                if (decrStr != null)
-                    decrStr.Close();
-                if (fs != null)
-                    fs.Close();
+                if (cryptoStream != null)
+                {
+                    cryptoStream.Close();
+                }
+                    
+                if (fileStream != null)
+                {
+                    fileStream.Close();
+                }
+                    
                 if (outFile != null)
+                {
                     outFile.Close();
+                }
             }
         }
     }

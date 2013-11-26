@@ -10,155 +10,93 @@ namespace FileEncrypt
 {
     class Program
     {
-        static string programName = "FileEncrypt";
-
-        enum CryptAction
-        {
-            None = 0,
-            Invalid = -1,
-            Encrypt = 1,
-            Decrypt = 2,
-        }
-
         static void Main(string[] args)
         {
-            bool show_help = false;
-            CryptAction action = CryptAction.None;
-            string outputFileName = "";
-            string inputFileName = "";
-			string saltFileName = "salt";
-            string password = "";
+            var settings = new Settings();
+            var optionSet = OptionSetHelper.DefineOptions(settings);
 
-            var p = new OptionSet() {
-                { 
-                    "a|action=",
-                    "Encrypt (c) or decrypt (d) the file",
-                    v => { 
-                        if(v.ToLower() == "c") { action = CryptAction.Encrypt; }
-                        else if (v.ToLower() == "d") { action = CryptAction.Decrypt; }
-                        else { action = CryptAction.Invalid; }
-                    }
-                },
-                { 
-                    "o|out=", 
-                    "the output {FILENAME}", 
-                    v => outputFileName = v
-                },
-                {
-                    "i|in=",
-                    "the input {FILENAME}",
-                    v => inputFileName = v
-                },
-                {
-                    "p|password=",
-                    "the {PASSWORD}",
-                    v => password = v
-                },
-				{
-					"s|salt=",
-					"the {SALT} file (default is 'salt')",
-					v => saltFileName = v
-				},
-                { 
-                    "h|help",  
-                    "show this message and exit", 
-                    v => show_help = v != null 
-                }
-            };
-
-            List<string> extra;
             try
             {
-                extra = p.Parse(args);
+                optionSet.Parse(args);
             }
             catch (OptionException e)
             {
-                Console.Write("{0}: ", programName);
-                Console.WriteLine(e.Message);
-                Console.WriteLine("Try '{0} --help' for more information.", programName);
+                ConsoleWriter.WriteException(e);
+            }
+
+            if (settings.ShowHelp)
+            {
+                ConsoleWriter.ShowHelp(optionSet);
                 return;
             }
 
-            if (show_help)
+            var errorMessage = ValidateSettings(settings);
+            if (errorMessage.Length > 0)
             {
-                ShowHelp(p);
-                return;
-            }
-
-            var errorMessage = new StringBuilder();
-            if (action == CryptAction.None)
-                errorMessage.AppendLine("Option -a is missing.");
-            else if (action == CryptAction.Invalid)
-                errorMessage.AppendLine("Option -a is invalid. Possible values are 'c' (for encrypting) or 'd' (for decrypting).");
-
-            if (string.IsNullOrEmpty(inputFileName))
-                errorMessage.AppendLine("Option -i is missing.");
-
-            if (string.IsNullOrEmpty(outputFileName))
-                errorMessage.AppendLine("Option -o is missing.");
-
-            if (string.IsNullOrEmpty(password))
-                errorMessage.AppendLine("Option -p is missing.");
-
-            string errmsg = errorMessage.ToString();
-            if (!string.IsNullOrEmpty(errmsg))
-            {
-                Console.WriteLine(errmsg);
-                ShowHelp(p);
+                Console.WriteLine(errorMessage.ToString());
+                ConsoleWriter.ShowHelp(optionSet);
                 return;
             }
 
             try
             {
-                if (action == CryptAction.Encrypt)
+                var saltStore = new SaltStore(settings.SaltFileName);
+                if (!saltStore.SaltCreated())
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Encrypting");
-                    Console.ResetColor();
-                    Console.ForegroundColor = ConsoleColor.DarkRed;
-                    Console.WriteLine("{0} -> {1}", inputFileName, outputFileName);
-                    Console.ResetColor();
-					
-					SaltStore saltStore = new SaltStore(saltFileName);
-					if(!saltStore.SaltCreated())
-						saltStore.Save(SaltCreator.Create());
-					
-                    var encrypter = new FileEncryptRijndael(inputFileName, outputFileName, password, saltStore.Get());
-                    encrypter.Encrypt();
+                    saltStore.Save(SaltCreator.Create());
                 }
-                else if (action == CryptAction.Decrypt)
-                {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine("Decrypting");
-                    Console.ResetColor();
-                    Console.ForegroundColor = ConsoleColor.DarkGreen;
-                    Console.WriteLine("{0} -> {1}", inputFileName, outputFileName);
-                    Console.ResetColor();
-					
-					SaltStore saltStore = new SaltStore(saltFileName);
 
-                    var decrypter = new FileEncryptRijndael(inputFileName, outputFileName, password, saltStore.Get());
-                    decrypter.Decrypt();
+                var encrypter = new FileEncryptRijndael(settings.InputFileName, settings.OutputFileName, settings.Password, saltStore.Get());
+
+                switch (settings.CryptAction)
+                {
+                    case CryptAction.Decrypt:
+
+                        ConsoleWriter.ShowDecryptMessage(settings);
+                        encrypter.Decrypt();
+
+                        return;
+                    case CryptAction.Encrypt:
+
+                        ConsoleWriter.ShowEncryptMessage(settings);
+                        encrypter.Encrypt();
+
+                        return;
                 }
             }
-            catch (CryptographicException ex) { ShowException(ex); }
-            catch (IOException ex) { ShowException(ex); }
-            catch (Exception ex) { ShowException(ex); }
+            //catch (CryptographicException ex)
+            //catch (IOException ex)
+            catch (Exception ex)
+            {
+                ConsoleWriter.ShowException(ex);
+            }
         }
 
-        static void ShowHelp(OptionSet p)
+        private static StringBuilder ValidateSettings(Settings settings)
         {
-            Console.WriteLine("Usage: {0} [OPTIONS]+", programName);
-            Console.WriteLine("Encrypt and decrypt files.");
-            Console.WriteLine();
-            Console.WriteLine("Options:");
-            p.WriteOptionDescriptions(Console.Out);
-        }
+            var errorMessage = new StringBuilder();
 
-        static void ShowException(Exception ex)
-        {
-            Console.WriteLine("Exception occured:");
-            Console.WriteLine(ex.ToString());
+            if (settings.CryptAction == CryptAction.None)
+            {
+                errorMessage.AppendLine("Option -a is invalid or missing. Possible values are 'c' (for encrypting) or 'd' (for decrypting).");
+            }
+
+            if (string.IsNullOrEmpty(settings.InputFileName))
+            {
+                errorMessage.AppendLine("Option -i is missing.");
+            }
+
+            if (string.IsNullOrEmpty(settings.OutputFileName))
+            {
+                errorMessage.AppendLine("Option -o is missing.");
+            }
+
+            if (string.IsNullOrEmpty(settings.Password))
+            {
+                errorMessage.AppendLine("Option -p is missing.");
+            }
+
+            return errorMessage;
         }
     }
 }

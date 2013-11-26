@@ -78,7 +78,7 @@ namespace FileEncrypt
 
             if (settings.CryptAction == CryptAction.None)
             {
-                errorMessage.AppendLine("Option -a is invalid or missing. Possible values are 'c' (for encrypting) or 'd' (for decrypting).");
+                errorMessage.AppendLine("Encrypt/Decrypt option is missing.");
             }
 
             if (string.IsNullOrEmpty(settings.InputFileName))

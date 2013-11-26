@@ -35,7 +35,7 @@ namespace FileEncrypt
         public static void ShowEncryptMessage(Settings settings)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("Encrypting");
+            Console.Write("Encrypting... ");
             Console.ResetColor();
             Console.ForegroundColor = ConsoleColor.DarkRed;
             Console.WriteLine("{0} -> {1}", settings.InputFileName, settings.OutputFileName);
@@ -45,7 +45,7 @@ namespace FileEncrypt
         public static void ShowDecryptMessage(Settings settings)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("Decrypting");
+            Console.Write("Decrypting... ");
             Console.ResetColor();
             Console.ForegroundColor = ConsoleColor.DarkGreen;
             Console.WriteLine("{0} -> {1}", settings.InputFileName, settings.OutputFileName);

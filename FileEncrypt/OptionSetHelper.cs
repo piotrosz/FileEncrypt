@@ -12,12 +12,14 @@ namespace FileEncrypt
         {
             return new OptionSet {
                 { 
-                    "a|action=",
-                    "Encrypt (c) or decrypt (d) the file",
-                    v => { 
-                        if(v.ToLower() == "c") { settings.CryptAction = CryptAction.Encrypt; }
-                        else if (v.ToLower() == "d") { settings.CryptAction = CryptAction.Decrypt; }
-                    }
+                    "encrypt",
+                    "Encrypt  the file",
+                    v => settings.CryptAction = CryptAction.Encrypt
+                },
+                {
+                    "decrypt",
+                    "Decrypt  the file",
+                    v => settings.CryptAction = CryptAction.Decrypt
                 },
                 { 
                     "o|out=", 

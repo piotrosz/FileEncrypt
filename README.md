@@ -4,10 +4,10 @@ FileEncrypt is a very simple command line application for encrypting and decrypt
 
 To encrypt file:
 
-`FileEncrypt.exe -a c -i FileToEncrypt -o FileEncrypted -p Password`
+`FileEncrypt.exe -encrypt -i FileToEncrypt -p Password`
 
 To decrypt file:
 
-`FileEncrypt.exe -a d -i FileEncrypted -o FileDecrypted -p Password`
+`FileEncrypt.exe -decrypt -i FileEncrypted -p Password`
 
 ![Encrypting and decrypting file](http://if.pw.edu.pl/~ludwik/images/FileEncrypt.png)

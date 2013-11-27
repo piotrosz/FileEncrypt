@@ -5,41 +5,39 @@ namespace FileEncrypt
 {
     public class FileEncryptRijndael : IEncrypter
     {
-        private readonly string _inputFileName;
-        private readonly string _outputFileName;
         private readonly string _password;
         private readonly byte[] _saltValueBytes;
 
-        public FileEncryptRijndael(string inputFileName, string outputFileName, string password, byte[] saltValueBytes)
+        public FileEncryptRijndael(string password, byte[] saltValueBytes)
         {
-            _inputFileName = inputFileName;
-            _outputFileName = outputFileName;
             _password = password;
             _saltValueBytes = saltValueBytes;
         }
 
-        public void Encrypt()
+        public void Encrypt(string inputFileName)
         {
-            var passwordKey = new Rfc2898DeriveBytes(_password, _saltValueBytes);
+            RijndaelManaged algorithm;
+            using (var passwordKey = new Rfc2898DeriveBytes(_password, _saltValueBytes))
+            {
+                algorithm = new RijndaelManaged();
+                algorithm.Key = passwordKey.GetBytes(algorithm.KeySize / 8);
+                algorithm.IV = passwordKey.GetBytes(algorithm.BlockSize / 8);
+            }
 
-            var algorithm = new RijndaelManaged();
-            algorithm.Key = passwordKey.GetBytes(algorithm.KeySize / 8);
-            algorithm.IV = passwordKey.GetBytes(algorithm.BlockSize / 8);
-
-            FileStream fileStream = null, outFile = null;
-
+            FileStream inputFileStream = null, outputFileStream = null;
             CryptoStream cryptoStream = null;
+
             try
             {
-                fileStream = new FileStream(_inputFileName, FileMode.Open, FileAccess.Read);
+                inputFileStream = new FileStream(inputFileName, FileMode.Open, FileAccess.Read);
 
-                var fileData = new byte[fileStream.Length];
-                fileStream.Read(fileData, 0, (int)fileStream.Length);
+                var fileData = new byte[inputFileStream.Length];
+                inputFileStream.Read(fileData, 0, (int)inputFileStream.Length);
                 ICryptoTransform encryptor = algorithm.CreateEncryptor();
 
-                outFile = new FileStream(_outputFileName, FileMode.OpenOrCreate, FileAccess.Write);
+                outputFileStream = new FileStream(OutputFilenameGenerator.Generate(inputFileName, EncryptAction.Encrypt), FileMode.OpenOrCreate, FileAccess.Write);
 
-                cryptoStream = new CryptoStream(outFile, encryptor, CryptoStreamMode.Write);
+                cryptoStream = new CryptoStream(outputFileStream, encryptor, CryptoStreamMode.Write);
                 cryptoStream.Write(fileData, 0, fileData.Length);
             }
             finally
@@ -49,42 +47,45 @@ namespace FileEncrypt
                     cryptoStream.Close();
                 }
                     
-                if (fileStream != null)
+                if (inputFileStream != null)
                 {
-                    fileStream.Close();
+                    inputFileStream.Close();
                 }
 
-                if (outFile != null) 
+                if (outputFileStream != null) 
                 { 
-                    outFile.Close(); 
+                    outputFileStream.Close(); 
                 }
             }
         }
 
-        public void Decrypt()
+        public void Decrypt(string inputFileName)
         {
             var passwordKey = new Rfc2898DeriveBytes(_password, _saltValueBytes);
 
-            var algorithm = new RijndaelManaged();
-            algorithm.Key = passwordKey.GetBytes(algorithm.KeySize / 8);
+            ICryptoTransform decryptor;
+            using (var algorithm = new RijndaelManaged())
+            {
+                algorithm.Key = passwordKey.GetBytes(algorithm.KeySize / 8);
+                algorithm.IV = passwordKey.GetBytes(algorithm.BlockSize / 8);
 
-            algorithm.IV = passwordKey.GetBytes(algorithm.BlockSize / 8);
-            ICryptoTransform decryptor = algorithm.CreateDecryptor();
-            FileStream fileStream = null, outFile = null;
+                decryptor = algorithm.CreateDecryptor();
+            }
 
+            FileStream inputFileStrean = null, outputFileStream = null;
             CryptoStream cryptoStream = null;
 
             try
             {
-                fileStream = new FileStream(_inputFileName, FileMode.Open, FileAccess.Read);
+                inputFileStrean = new FileStream(inputFileName, FileMode.Open, FileAccess.Read);
 
-                cryptoStream = new CryptoStream(fileStream, decryptor, CryptoStreamMode.Read);
-                var fileData = new byte[fileStream.Length];
+                cryptoStream = new CryptoStream(inputFileStrean, decryptor, CryptoStreamMode.Read);
+                var fileData = new byte[inputFileStrean.Length];
 
-                cryptoStream.Read(fileData, 0, (int)fileStream.Length);
-                outFile = new FileStream(_outputFileName, FileMode.OpenOrCreate, FileAccess.Write);
+                cryptoStream.Read(fileData, 0, (int)inputFileStrean.Length);
+                outputFileStream = new FileStream(OutputFilenameGenerator.Generate(inputFileName, EncryptAction.Decrypt), FileMode.OpenOrCreate, FileAccess.Write);
 
-                outFile.Write(fileData, 0, fileData.Length);
+                outputFileStream.Write(fileData, 0, fileData.Length);
             }
             finally
             {
@@ -93,14 +94,14 @@ namespace FileEncrypt
                     cryptoStream.Close();
                 }
                     
-                if (fileStream != null)
+                if (inputFileStrean != null)
                 {
-                    fileStream.Close();
+                    inputFileStrean.Close();
                 }
                     
-                if (outFile != null)
+                if (outputFileStream != null)
                 {
-                    outFile.Close();
+                    outputFileStream.Close();
                 }
             }
         }

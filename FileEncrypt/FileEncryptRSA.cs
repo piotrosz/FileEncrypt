@@ -6,20 +6,16 @@ namespace FileEncrypt
 {
     public class FileEncryptRsa : IEncrypter
     {
-        private readonly string _inputFileName;
-        private readonly string _outputFileName;
         private readonly string _rsaParamsFileName;
 
-        public FileEncryptRsa(string inputFileName, string outputFileName, string rsaParamsFileName)
+        public FileEncryptRsa(string rsaParamsFileName)
         {
-            _inputFileName = inputFileName;
-            _outputFileName = outputFileName;
             _rsaParamsFileName = rsaParamsFileName;
         }
 
-        public void Encrypt()
+        public void Encrypt(string inputFileName)
         {
-            byte[] dataToEncrypt = File.ReadAllBytes(_inputFileName);
+            byte[] dataToEncrypt = File.ReadAllBytes(inputFileName);
             byte[] encryptedData;
 
             using (var rsaProvider = new RSACryptoServiceProvider())
@@ -29,20 +25,20 @@ namespace FileEncrypt
                 encryptedData = RsaEncrypt(dataToEncrypt, rsaParams);
             }
 
-            File.WriteAllBytes(_outputFileName, encryptedData);
+            File.WriteAllBytes(OutputFilenameGenerator.Generate(inputFileName, EncryptAction.Encrypt), encryptedData);
         }
 
-        public void Decrypt()
+        public void Decrypt(string inputFileName)
         {
             var byteConverter = new UTF8Encoding();
-            byte[] encryptedData = File.ReadAllBytes(_inputFileName);
+            byte[] encryptedData = File.ReadAllBytes(inputFileName);
             string rsaParams = File.ReadAllText(_rsaParamsFileName);
             byte[] decryptedData = RsaDecrypt(encryptedData, rsaParams);
 
-            File.WriteAllText(_outputFileName, byteConverter.GetString(decryptedData));
+            File.WriteAllText(OutputFilenameGenerator.Generate(inputFileName, EncryptAction.Decrypt), byteConverter.GetString(decryptedData));
         }
 
-        private byte[] RsaEncrypt(byte[] dataToEncrypt, string rsaParams)
+        private static byte[] RsaEncrypt(byte[] dataToEncrypt, string rsaParams)
         {
             byte[] encryptedData;
             using (var rsaProvider = new RSACryptoServiceProvider())
@@ -53,7 +49,7 @@ namespace FileEncrypt
             return encryptedData;
         }
 
-        private byte[] RsaDecrypt(byte[] dataToDecrypt, string rsaParams)
+        private static byte[] RsaDecrypt(byte[] dataToDecrypt, string rsaParams)
         {
             byte[] decryptedData;
             using (var rsaProvider = new RSACryptoServiceProvider())

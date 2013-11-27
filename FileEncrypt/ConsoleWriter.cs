@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using NDesk.Options;
 
 namespace FileEncrypt
@@ -21,14 +18,16 @@ namespace FileEncrypt
 
         public static void ShowException(Exception ex)
         {
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Exception occured:");
             Console.WriteLine(ex.ToString());
+            Console.ResetColor();
         }
 
         public static void WriteException(OptionException exception)
         {
             Console.Write("{0}: ", ProgramName);
-            Console.WriteLine(exception.Message);
+            ShowException(exception);
             Console.WriteLine("Try '{0} --help' for more information.", ProgramName);
         }
 
@@ -36,9 +35,7 @@ namespace FileEncrypt
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write("Encrypting... ");
-            Console.ResetColor();
-            Console.ForegroundColor = ConsoleColor.DarkRed;
-            Console.WriteLine("{0} -> {1}", settings.InputFileName, settings.OutputFileName);
+            Console.WriteLine("{0} -> {1}", settings.InputFileName, OutputFilenameGenerator.Generate(settings.InputFileName, EncryptAction.Encrypt));
             Console.ResetColor();
         }
 
@@ -46,9 +43,7 @@ namespace FileEncrypt
         {
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write("Decrypting... ");
-            Console.ResetColor();
-            Console.ForegroundColor = ConsoleColor.DarkGreen;
-            Console.WriteLine("{0} -> {1}", settings.InputFileName, settings.OutputFileName);
+            Console.WriteLine("{0} -> {1}", settings.InputFileName, OutputFilenameGenerator.Generate(settings.InputFileName, EncryptAction.Decrypt));
             Console.ResetColor();
         }
     }

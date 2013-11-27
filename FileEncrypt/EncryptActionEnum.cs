@@ -1,6 +1,6 @@
 ﻿namespace FileEncrypt
 {
-    public enum CryptAction
+    public enum EncryptAction
     {
         None = 0,
         Encrypt = 1,

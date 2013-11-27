@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using NDesk.Options;
-using System.Security.Cryptography;
-using System.IO;
 
 namespace FileEncrypt
 {
@@ -30,10 +25,12 @@ namespace FileEncrypt
                 return;
             }
 
-            var errorMessage = ValidateSettings(settings);
-            if (errorMessage.Length > 0)
+            var validator = new SettingsValidator();
+
+            var errorMessages = validator.Validate(settings);
+            if (errorMessages.Count > 0)
             {
-                Console.WriteLine(errorMessage.ToString());
+                errorMessages.ForEach(Console.WriteLine);
                 ConsoleWriter.ShowHelp(optionSet);
                 return;
             }
@@ -41,27 +38,19 @@ namespace FileEncrypt
             try
             {
                 var saltStore = new SaltStore(settings.SaltFileName);
-                if (!saltStore.SaltCreated())
+                var encrypter = new FileEncryptRijndael(settings.Password, saltStore.CreateAndGet());
+
+                switch (settings.EncryptAction)
                 {
-                    saltStore.Save(SaltCreator.Create());
-                }
-
-                var encrypter = new FileEncryptRijndael(settings.InputFileName, settings.OutputFileName, settings.Password, saltStore.Get());
-
-                switch (settings.CryptAction)
-                {
-                    case CryptAction.Decrypt:
-
+                    case EncryptAction.Decrypt:
                         ConsoleWriter.ShowDecryptMessage(settings);
-                        encrypter.Decrypt();
+                        encrypter.Decrypt(settings.InputFileName);
+                        break;
 
-                        return;
-                    case CryptAction.Encrypt:
-
+                    case EncryptAction.Encrypt:
                         ConsoleWriter.ShowEncryptMessage(settings);
-                        encrypter.Encrypt();
-
-                        return;
+                        encrypter.Encrypt(settings.InputFileName);
+                        break;
                 }
             }
             //catch (CryptographicException ex)
@@ -70,33 +59,6 @@ namespace FileEncrypt
             {
                 ConsoleWriter.ShowException(ex);
             }
-        }
-
-        private static StringBuilder ValidateSettings(Settings settings)
-        {
-            var errorMessage = new StringBuilder();
-
-            if (settings.CryptAction == CryptAction.None)
-            {
-                errorMessage.AppendLine("Encrypt/Decrypt option is missing.");
-            }
-
-            if (string.IsNullOrEmpty(settings.InputFileName))
-            {
-                errorMessage.AppendLine("Option -i is missing.");
-            }
-
-            if (string.IsNullOrEmpty(settings.OutputFileName))
-            {
-                errorMessage.AppendLine("Option -o is missing.");
-            }
-
-            if (string.IsNullOrEmpty(settings.Password))
-            {
-                errorMessage.AppendLine("Option -p is missing.");
-            }
-
-            return errorMessage;
         }
     }
 }

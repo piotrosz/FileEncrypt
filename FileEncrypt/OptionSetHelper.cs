@@ -1,8 +1,4 @@
 ﻿using NDesk.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace FileEncrypt
 {
@@ -10,21 +6,17 @@ namespace FileEncrypt
     {
         public static OptionSet DefineOptions(Settings settings)
         {
-            return new OptionSet {
+            return new OptionSet 
+            {
                 { 
                     "encrypt",
                     "Encrypt  the file",
-                    v => settings.CryptAction = CryptAction.Encrypt
+                    v => settings.EncryptAction = EncryptAction.Encrypt
                 },
                 {
                     "decrypt",
                     "Decrypt  the file",
-                    v => settings.CryptAction = CryptAction.Decrypt
-                },
-                { 
-                    "o|out=", 
-                    "the output {FILENAME}", 
-                    v => settings.OutputFileName = v
+                    v => settings.EncryptAction = EncryptAction.Decrypt
                 },
                 {
                     "i|in=",

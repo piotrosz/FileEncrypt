@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace FileEncrypt
+﻿namespace FileEncrypt
 {
     interface IEncrypter
     {
-        void Encrypt();
-        void Decrypt();
+        void Encrypt(string inputFileName);
+        void Decrypt(string inputFileName);
     }
 }

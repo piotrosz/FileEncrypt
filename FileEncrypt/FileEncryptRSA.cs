@@ -20,7 +20,7 @@ namespace FileEncrypt
 
             using (var rsaProvider = new RSACryptoServiceProvider())
             {
-                string rsaParams = rsaProvider.ToXmlString(true);
+                string rsaParams = rsaProvider.ToXmlString(includePrivateParameters:true);
                 File.WriteAllText(_rsaParamsFileName, rsaParams);
                 encryptedData = RsaEncrypt(dataToEncrypt, rsaParams);
             }

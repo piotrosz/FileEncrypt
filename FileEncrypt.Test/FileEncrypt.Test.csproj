@@ -42,7 +42,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FileEncryptRijndaelFacts.cs" />
+    <Compile Include="Functional\FileEncryptRijndaelFacts.cs" />
+    <Compile Include="Functional\FileEncryptRsaFacts.cs" />
     <Compile Include="SettingsValidatorFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -59,7 +60,11 @@
     <Content Include="TestFiles\SampleTextFileToEncrypt.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="TestFiles\SampleTextFileToEncrypt2.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

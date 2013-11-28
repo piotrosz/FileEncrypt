@@ -1,32 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 using Xunit;
 
-namespace FileEncrypt.Test
+namespace FileEncrypt.Test.Functional
 {
-    // Functional tests
-
-    public class FileEncryptRijndaelFacts
+    public class FileEncryptRsaFacts
     {
         [Fact]
         public void decrypted_file_should_be_the_same_as_original()
         {
             // Arrange
-            const string inputFileName = @"TestFiles\SampleTextFileToEncrypt.txt";
-
+            const string inputFileName = @"TestFiles\SampleTextFileToEncrypt2.txt";
             string fileContents = File.ReadAllText(inputFileName);
-
-            const string password = "pass";
-            var saltStore = new SaltStore(inputFileName);
-            var target = new FileEncryptRijndael(password, new SaltStore("salt").CreateAndGet());
+            var target = new FileEncryptRsa("public_and_private_key.txt");
 
             // Act
             target.Encrypt(inputFileName);
-
             target.Decrypt(OutputFilenameGenerator.Generate(inputFileName, EncryptAction.Encrypt));
 
             // Assert
@@ -34,6 +22,5 @@ namespace FileEncrypt.Test
 
             Assert.True(descyptedFileContent.StartsWith(fileContents));
         }
-
     }
 }
